@@ -25,11 +25,11 @@ RLE::RLE(const string& path) {
 	height = toU16(heightBits);
 
 	// Read encoded pixels
-	pixels.resize(width * height * (COMPONENT_COUNT + 1));
+	pixels.resize(width * height * (COMPONENT_COUNT + OCCURENCE_COUNT_SIZE));
 	auto index{ 0 };
-	for (; !file.eof(); index += COMPONENT_COUNT + 1)
-		file.read(reinterpret_cast<char*>(pixels.data() + index), COMPONENT_COUNT + 1);
+	for (; !file.eof(); index += COMPONENT_COUNT + OCCURENCE_COUNT_SIZE)
+		file.read(reinterpret_cast<char*>(pixels.data() + index), COMPONENT_COUNT + OCCURENCE_COUNT_SIZE);
 
 	// Shrink the pixels array to the actual size
-	pixels.resize(index);
+	pixels.resize(index - COMPONENT_COUNT - OCCURENCE_COUNT_SIZE);
 }
