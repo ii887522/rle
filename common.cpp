@@ -6,12 +6,14 @@
 #include "ppm.h"
 #include <iostream>
 #include "rle.h"
+#include <chrono>
 
 using std::ifstream;
 using std::ofstream;
 using std::ios;
 using std::exception;
 using std::stringstream;
+using std::chrono::high_resolution_clock;
 
 bool startsWith(const string& from, const char target) {
 	return from.rfind(target, 0) == 0;
@@ -19,6 +21,8 @@ bool startsWith(const string& from, const char target) {
 
 vector<unsigned char> rleEncode(const string& path) {
 	PPM ppm{ path };
+
+	const auto start{ high_resolution_clock::now() };
 
 	// Write size information so that later can decode
 	unsigned char sizeBits[4];
@@ -70,13 +74,23 @@ vector<unsigned char> rleEncode(const string& path) {
 	toUChars(occurrenceCountBits, occurenceCount);
 	std::copy(occurrenceCountBits, occurrenceCountBits + sizeof(occurrenceCountBits), std::back_inserter(result));
 
+	const auto end{ high_resolution_clock::now() };
+
+	// Print the benchmark result
+	std::cout << "Serial time taken: "
+		<< std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() * 1e-9
+		<< "s\n";
+
 	return result;
 }
 
 vector<unsigned char> rleDecode(const string& path) {
 	RLE rle{ path };
+
+	const auto start{ high_resolution_clock::now() };
+
 	vector<unsigned char> result;
-	result.reserve(rle.getWidth() * rle.getHeight() * COMPONENT_COUNT + 19); // 19 represents the size of the PPM header
+	result.reserve(rle.getWidth() * rle.getHeight() * COMPONENT_COUNT + 19); // 19 represents the maximum size of the PPM header
 
 	// Write PPM header
 	pushStr(result, "P6\n");
@@ -94,6 +108,13 @@ vector<unsigned char> rleDecode(const string& path) {
 			result.push_back(rle.getPixels()[i + 2]);
 		}
 	}
+
+	const auto end{ high_resolution_clock::now() };
+
+	// Print the benchmark result
+	std::cout << "Serial time taken: "
+		<< std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() * 1e-9
+		<< "s\n";
 
 	return result;
 }
